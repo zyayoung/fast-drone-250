@@ -592,6 +592,9 @@ void BaseRealSenseNode::registerDynamicOption(ros::NodeHandle& nh, rs2::options 
         }
         
     }
+    if (sensor.supports(RS2_OPTION_EMITTER_ON_OFF)) {
+        sensor.set_option(RS2_OPTION_EMITTER_ON_OFF, 1);
+    }
     ddynrec->publishServicesTopics();
     _ddynrec.push_back(ddynrec);
 }
@@ -1320,6 +1323,25 @@ cv::Mat& BaseRealSenseNode::fix_depth_scale(const cv::Mat& from_image, cv::Mat& 
         }
     }
     return to_image;
+}
+
+float depth_in_range(const cv::Mat& image, float d_min=100, float d_max=10000)
+{
+    int nRows = image.rows;
+    int nCols = image.cols;
+
+    int i, j, count=0;
+    const uint16_t* p_from;
+    for( i = 0; i < nRows; ++i)
+    {
+        p_from = image.ptr<uint16_t>(i);
+        for ( j = 0; j < nCols; ++j)
+        {
+            if (d_min < p_from[j] && p_from[j] < d_max)
+                count += 1;
+        }
+    }
+    return static_cast<float>(count) / nRows / nCols;
 }
 
 void BaseRealSenseNode::clip_depth(rs2::depth_frame depth_frame, float clipping_dist)
@@ -2395,6 +2417,11 @@ void BaseRealSenseNode::publishFrame(rs2::frame f, const ros::Time& t,
     if (f.is<rs2::depth_frame>())
     {
         image = fix_depth_scale(image, _depth_scaled_image[stream]);
+        auto valid_ratio = depth_in_range(image);
+        if (valid_ratio > _moving_avg_valid_ratio) {
+            _last_emitter_on_frame_number = f.get_frame_number();
+        }
+        _moving_avg_valid_ratio = 0.9 * _moving_avg_valid_ratio + 0.1 * valid_ratio;
     }
 
     ++(seq[stream]);
@@ -2413,18 +2440,23 @@ void BaseRealSenseNode::publishFrame(rs2::frame f, const ros::Time& t,
         cam_info.header.stamp = t;
         cam_info.header.seq = seq[stream];
         info_publisher.publish(cam_info);
+        bool is_emitter_off = (f.get_frame_number() - _last_emitter_on_frame_number) % 2;
+        if ( (stream.first == rs2_stream::RS2_STREAM_COLOR) || 
+             (stream.first == rs2_stream::RS2_STREAM_DEPTH    && !is_emitter_off ) ||
+             (stream.first == rs2_stream::RS2_STREAM_INFRARED &&  is_emitter_off ) )
+        {
+            sensor_msgs::ImagePtr img;
+            img = cv_bridge::CvImage(std_msgs::Header(), encoding.at(stream.first), image).toImageMsg();
+            img->width = width;
+            img->height = height;
+            img->is_bigendian = false;
+            img->step = width * bpp;
+            img->header.frame_id = cam_info.header.frame_id;
+            img->header.stamp = t;
+            img->header.seq = seq[stream];
 
-        sensor_msgs::ImagePtr img;
-        img = cv_bridge::CvImage(std_msgs::Header(), encoding.at(stream.first), image).toImageMsg();
-        img->width = width;
-        img->height = height;
-        img->is_bigendian = false;
-        img->step = width * bpp;
-        img->header.frame_id = cam_info.header.frame_id;
-        img->header.stamp = t;
-        img->header.seq = seq[stream];
-
-        image_publisher.first.publish(img);
+            image_publisher.first.publish(img);
+        }
         ROS_DEBUG("%s stream published", rs2_stream_to_string(f.get_profile().stream_type()));
     }
     if (is_publishMetadata)

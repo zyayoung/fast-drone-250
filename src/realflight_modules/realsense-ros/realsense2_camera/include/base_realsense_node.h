@@ -264,6 +264,8 @@ namespace realsense2_camera
         std::string _serial_no;
         float _depth_scale_meters;
         float _clipping_distance;
+        float _moving_avg_valid_ratio;
+        unsigned long long _last_emitter_on_frame_number;
         bool _allow_no_texture_points;
         bool _ordered_pc;
 
