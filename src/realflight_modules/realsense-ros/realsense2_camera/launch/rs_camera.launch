@@ -1,4 +1,5 @@
 <launch>
+  <rosparam>/camera/stereo_module/emitter_enabled: 0</rosparam>
   <arg name="serial_no"           default=""/>
   <arg name="usb_port_id"         default=""/>
   <arg name="device_type"         default=""/>
