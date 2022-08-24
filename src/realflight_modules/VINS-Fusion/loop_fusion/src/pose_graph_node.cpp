@@ -455,9 +455,9 @@ int main(int argc, char **argv)
     fsSettings["save_image"] >> DEBUG_IMAGE;
 
     LOAD_PREVIOUS_POSE_GRAPH = fsSettings["load_previous_pose_graph"];
-    VINS_RESULT_PATH = VINS_RESULT_PATH + "/vio_loop.txt";
-    std::ofstream foutC(VINS_RESULT_PATH, std::ios::out);
-    foutC.close();
+    VINS_RESULT_PATH = VINS_RESULT_PATH + "/vio_loop.csv";
+    std::ofstream fout(VINS_RESULT_PATH, std::ios::out);
+    fout.close();
 
     int USE_IMU = fsSettings["imu"];
     posegraph.setIMUFlag(USE_IMU);
