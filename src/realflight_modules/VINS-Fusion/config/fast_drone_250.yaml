@@ -20,32 +20,28 @@ cam0_calib: "left.yaml"
 cam1_calib: "right.yaml"
 image_width: 640
 image_height: 480
-   
+
 
 # Extrinsic parameter between IMU and Camera.
-estimate_extrinsic: 0   # 0  Have an accurate extrinsic parameters. We will trust the following imu^R_cam, imu^T_cam, don't change it.
+estimate_extrinsic: 1   # 0  Have an accurate extrinsic parameters. We will trust the following imu^R_cam, imu^T_cam, don't change it.
                         # 1  Have an initial guess about extrinsic parameters. We will optimize around your initial guess.
 
 body_T_cam0: !!opencv-matrix
    rows: 4
    cols: 4
    dt: d
-   data: [ 1.1493579169179480e-03, -1.2359930659193552e-02,
-       9.9992295257708697e-01, 8.1144868524099939e-02,
-       -9.9977806405520186e-01, -2.1048332134521397e-02,
-       8.8901540375441179e-04, 2.9381623874400173e-02,
-       2.1035722246028288e-02, -9.9970205552877367e-01,
-       -1.2381379613481958e-02, 7.2008076729622061e-02, 0., 0., 0., 1. ]
+   data: [ 0.01164085,  0.00810506,  0.99989939,  0.07583417,
+            -0.99965182, -0.02358625,  0.01182916,  0.02814133,
+            0.02367975, -0.99968895,  0.00782768,  0.06648081,
+            0.        ,  0.        ,  0.        ,  1.        ]
 body_T_cam1: !!opencv-matrix
    rows: 4
    cols: 4
    dt: d
-   data: [ 2.3528703193009814e-03, -1.3192170490763933e-02,
-       9.9991021128849544e-01, 8.0138633801109374e-02,
-       -9.9977670980508704e-01, -2.1029133224419905e-02,
-       2.0751113572344826e-03, -1.9813693205285979e-02,
-       2.0999869822831529e-02, -9.9969182361044273e-01,
-       -1.3238703631848203e-02, 7.3511008140919321e-02, 0., 0., 0., 1. ]
+   data: [ 0.01214091,  0.00699701,  0.99990182,  0.07649953,
+            -0.99964732, -0.02353491,  0.01230251, -0.02241652,
+            0.02361868, -0.99969853,  0.0067088 ,  0.06768827,
+            0.        ,  0.        ,  0.        ,  1.        ]
 
 #Multiple thread support
 multiple_thread: 1
@@ -74,7 +70,7 @@ g_norm: 9.805         # gravity magnitude
 
 #unsynchronization parameters
 estimate_td: 1                      # online estimate time offset between camera and imu
-td: -0.05                             # initial value of time offset. unit: s. readed image clock + td = real image clock (IMU clock)
+td: -0.0005                         # initial value of time offset. unit: s. readed image clock + td = real image clock (IMU clock)
 
 #loop closure parameters
 load_previous_pose_graph: 0        # load and reuse previous pose graph; load from 'pose_graph_save_path'
