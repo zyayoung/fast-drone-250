@@ -493,7 +493,11 @@ namespace ego_planner
           else
           {
             ROS_ERROR("Failed to generate the first trajectory!!!");
-            changeFSMExecState(SEQUENTIAL_START, "FSM");
+
+            have_target_ = false;
+            have_trigger_ = false;
+            changeFSMExecState(WAIT_TARGET, "FSM");
+            goto force_return;
           }
         }
         else
@@ -521,7 +525,10 @@ namespace ego_planner
       }
       else
       {
-        changeFSMExecState(GEN_NEW_TRAJ, "FSM");
+        have_target_ = false;
+        have_trigger_ = false;
+        changeFSMExecState(WAIT_TARGET, "FSM");
+        goto force_return;
       }
       break;
     }
